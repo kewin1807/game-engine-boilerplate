@@ -1,0 +1,40 @@
+.container{
+    display: flex;
+}
+.container .enermy-container{
+    display: block;
+    width: 50%;
+}
+
+.container .play-container{
+    display: block;
+    width: 50%;
+}
+.container .play-container .player{
+    width: 100px;
+    left: 50px;
+    background-color: "red"
+}
+.container .play-container .health{
+    width: 100px;
+}
+
+.container .play-container .skills{
+    margin-top:30px;
+    display: inline-block;
+}
+.container .play-container .skills .item{
+    width: 100px;
+    height: 60px;
+    margin-left: 5px
+}
+
+.container .enermy-container .enermy{
+    width: 100px;
+    left: 50px;
+    background-color: "green"
+}
+.container .enermy-container .health{
+    width: 100px;
+}
+

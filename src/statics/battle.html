@@ -3,7 +3,7 @@
 
 <head>
     <meta name="viewport" content="width=device-width" />
-
+    <link rel="stylesheet" href="battle.css" />
     <style>
         body {
             font-family: Tahoma, Geneva, sans-serif;
@@ -14,15 +14,6 @@
     <script type="text/javascript" src="https://unpkg.com/colyseus.js@^0.14.0/dist/colyseus.js"></script>
 
     <style type="text/css">
-        .player {
-            width: 100px;
-            height: 100px;
-            position: absolute;
-            padding-top: 24px;
-            box-sizing: border-box;
-            left: 0;
-            top: 0;
-        }
     </style>
 
 </head>
@@ -36,10 +27,25 @@
 
     <p>This example shows how to use custom data structures in your room's state.</p>
 
-    <strong>commands</strong><br>
+    <div class="container">
+        <div class="play-container">
+            <div class="player" id="player">
+            </div>
+            <div class="health" id="health-player"></div>
+            <div class="skills" id="skills">
 
-    <button onclick="fire(0.5)">fire small damm</button>
-    <button onclick="fire(1)">fire big damn</button>
+            </div>
+        </div>
+
+        <div class="enermy-container">
+            <div class="enermy" id="enermy">
+
+            </div>
+            <div class="health" id="health-enermy"></div>
+        </div>
+    </div>
+
+    <div class="message" id="messages"></div>
     <br />
 
     <script>
@@ -47,45 +53,59 @@
 
         var client = new Colyseus.Client(location.protocol.replace("http", "ws") + "//" + host + (location.port ? ':' + location.port : ''));
         var room;
-        client.joinOrCreate("battle").then(room_instance => {
+        client.joinOrCreate("battle-pve", { enermyID: 3, userId: 1 }).then(room_instance => {
             room = room_instance
 
-            var players = {};
             var colors = ['red', 'green', 'yellow', 'blue', 'cyan', 'magenta'];
 
             // listen to patches coming from the server
-            room.state.players.onAdd = function (player, sessionId) {
-                var dom = document.createElement("div");
-                dom.className = "player";
-                dom.style.left = player.x + "px";
-                dom.style.top = player.y + "px";
-                dom.style.background = colors[Math.floor(Math.random() * colors.length)];
-                dom.innerText = "Player " + sessionId;
+            // room.state.player.onChange = function (player, sessionId) {
+            room.onStateChange.once((state) => {
+                var domPlayer = document.getElementById("player");
+                domPlayer.innerText = "Player " + state.player.name;
+                document.getElementById("health-player").innerText = "Health " + state.player.currentHealth;
 
-                player.onChange = function (changes) {
-                    dom.style.left = player.x + "px";
-                    dom.style.top = player.y + "px";
-                }
-
-                players[sessionId] = dom;
-                document.body.appendChild(dom);
-            }
-
-            room.state.players.onRemove = function (player, sessionId) {
-                document.body.removeChild(players[sessionId]);
-                delete players[sessionId];
-            }
+                var domEnermy = document.getElementById("enermy");
+                domEnermy.innerText = "Bot " + state.bot.name;
+                document.getElementById("health-enermy").innerText = "Health " + state.bot.health;
 
 
-            room.onMessage("hello", (message) => {
-                console.log(message);
-            });
+                var domSkills = document.getElementById("skills");
+                state.player.skills.forEach((skill) => {
+                    var dom = document.createElement("button");
+                    dom.id = "skill" + skill.id;
+                    dom.onclick = () => {
+                        room.send('fire', { damage: skill.damage, skill_name: skill.skillName })
+                    };
+
+                    dom.className = "item";
+                    dom.style.background = "white";
+                    dom.innerText = skill.skillName + "(- " + skill.damage.toFixed(2) + ")";
+                    domSkills.appendChild(dom);
+                })
+            })
+            room.onStateChange((state) => {
+                document.getElementById("health-player").innerText = "Health " + state.player.currentHealth;
+                document.getElementById("health-enermy").innerText = "Health " + state.bot.health;
+            })
+
+            room.onMessage("turn_for_bot", (message) => {
+                var domMessage = document.createElement("p");
+                domMessage.innerText = message;
+                document.getElementById("messages").appendChild(domMessage);
+                room.send("bot-attacked");
+            })
+            room.onMessage("messages", (message) => {
+                var domMessage = document.createElement("p");
+                domMessage.innerText = message;
+                document.getElementById("messages").appendChild(domMessage);
+            })
+
+            // room.onMessage("hello", (message) => {
+            //     console.log(message);
+            // });
 
         });
-
-        function fire(x) {
-            room.send("fire", x);
-        }
 
 
     </script>

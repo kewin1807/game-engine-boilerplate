@@ -64,6 +64,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "types": [
+      "mocha",
       "node",
       "jest",
       "reflect-metadata"

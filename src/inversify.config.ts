@@ -1,3 +1,4 @@
+import { GamePvERoom } from "@gameplay/rooms/room.pve";
 import GameRepository from "@repositories/game/game.repository";
 import { IGameRepository } from "@repositories/game/IGameRepository";
 import GameService from "@services/game/game.service";
@@ -9,6 +10,7 @@ const container = new Container({ defaultScope: "Singleton" });
 // game
 container.bind<IGameRepository>(TYPES.GameRepository).to(GameRepository);
 container.bind<IGameService>(TYPES.GameService).to(GameService)
+container.bind(GamePvERoom).to(GamePvERoom);
 
 
 

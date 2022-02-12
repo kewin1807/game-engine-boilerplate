@@ -8,14 +8,14 @@ import cors from "cors";
 // import errorHandler from "./errors/error.handler";
 import logger from "./logger";
 import bodyParser from "body-parser";
-import path from "path";
-import { uWebSocketsTransport } from "@colyseus/uwebsockets-transport";
-import { GamePvPRoom } from "@gameplay/rooms/room.pvp";
-import { Server, RedisPresence } from "colyseus";
+import { WebSocketTransport } from "@colyseus/ws-transport"
+import { Server } from "colyseus";
 import { MongooseDriver } from "@colyseus/mongoose-driver";
 import http from "http";
+import path from "path";
 import { monitor } from "@colyseus/monitor";
 import dotenv from "dotenv";
+import { GamePvERoom } from "@gameplay/rooms/room.pve";
 
 dotenv.config();
 
@@ -41,17 +41,21 @@ async function bootstrap() {
 // Invoking the bootstrap function
 bootstrap()
   .then(() => {
+    console.log(process.env.DB_MONGODB_URI)
     const gameServer = new Server({
-      transport: new uWebSocketsTransport(),
+      transport: new WebSocketTransport({ server: http.createServer(app) }),
       driver: new MongooseDriver(process.env.DB_MONGODB_URI),
-      presence: new RedisPresence({ host: "localhost", port: Number(process.env.DB_REDIS_PORT) || 6379 }),
-      server: http.createServer(app)
+      // presence: new RedisPresence({ host: "redis", port: Number(process.env.DB_REDIS_PORT) || 6379 }),
+      // server: http.createServer(app)
     });
-    gameServer.define("battle", GamePvPRoom).enableRealtimeListing();
+    gameServer.define("battle-pve", GamePvERoom);
     gameServer.onShutdown(() => {
       logger.info("game server is going down")
     })
+
     gameServer.listen(Number(process.env.PORT || 3000));
+    // Define a room type
+
 
     logger.info("Server is up");
   })
